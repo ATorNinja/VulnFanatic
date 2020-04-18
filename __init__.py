@@ -44,9 +44,9 @@ def scan(bv,selection_addr):
 		scanner.start()
 
 # Register the plugin
-PluginCommand.register_for_address("[VulnFanatic] Highlight parameters", "Highlights parameters with color highlights", highlight)
-PluginCommand.register_for_address("[VulnFanatic] Clear highlighted parameters", "Removes highlights of parameters", clear_highlight)
-PluginCommand.register_for_address("[VulnFanatic] Start Scan", "Start Scan", scan)
+PluginCommand.register_for_address("[VulnFanatic]\\Highlight parameters", "Highlights parameters with color highlights", highlight)
+PluginCommand.register_for_address("[VulnFanatic]\\Clear highlighted parameters", "Removes highlights of parameters", clear_highlight)
+PluginCommand.register_for_address("[VulnFanatic]\\Start Scan", "Start Scan", scan)
 
 
 #PluginCommand.register_for_address("TraceFanatic: Comment parameters", "Adds comments to variables that influence parameters of highlighted call", start_comment)

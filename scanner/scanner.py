@@ -11,7 +11,25 @@ class Scanner(BackgroundTaskThread):
         self.scan_depth = scan_depth
         with open(rules_path,'r') as rules_file:
             self.rules = json.load(rules_file)
-         
+
+    def calc_addr(self, func, addr):
+        if "mips" in self.bv.arch.name:
+            if func.get_low_level_il_at(addr).mlil != None:
+                instr = func.get_low_level_il_at(addr).mlil.ssa_form
+            # Mips calls have to be traced differently
+            elif func.get_low_level_il_at(addr).ssa_form != None:
+                if func.llil.get_ssa_reg_uses(func.get_low_level_il_at(addr).ssa_form.dest)[0].mlil != None:
+                    instr = func.llil.get_ssa_reg_uses(func.get_low_level_il_at(addr).ssa_form.dest)[0].mlil.ssa_form
+                    return instr.address
+                else:
+                    return addr
+            else:
+                return addr 
+        elif func.get_low_level_il_at(addr).mlil == None:
+            return addr
+        else:
+            return func.get_low_level_il_at(addr).mlil.address
+
     def run(self):
         # For each rule in self.rules
         function_counter = 0
@@ -50,9 +68,14 @@ class Scanner(BackgroundTaskThread):
                                     query_result = eval(variant["where"])
                                     if query_result.get_sources():
                                         details = self.create_description(query_result.get_sources())
-                                        tag = xref.create_tag(self.bv.tag_types["[VulnFanatic] "+variant["confidence"]], f'{test_case["name"]}: {test_case["details"]}\n{details}', True)
-                                        xref.add_user_address_tag(addr, tag)
-                                        finding_counter += 1
+                                        tt = self.bv.tag_types["[VulnFanatic] "+variant["confidence"]]
+                                        tag = xref.create_tag(tt, f'{test_case["name"]}: {test_case["details"]}\n{details}', True)
+                                        ml_addr = self.calc_addr(xref, addr)
+                                        if not (xref.get_address_tags_at(ml_addr) and xref.get_address_tags_at(ml_addr)[0].type == tt):
+                                            xref.add_user_address_tag(ml_addr, tag)
+                                            finding_counter += 1
+                                        else:
+                                            log_info('[*] 0x{:x}, 0x{:x}'.format(addr, ml_addr))
                                         break
         
                 
